@@ -3,22 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Coonabarabran Dark Sky Calendar</title>
+<title>Dark Sky Calendar</title>
 <meta name="application-name" content="Dark Sky Calendar">
+<meta name="description" content="A free sky calendar for Coonabarabran and the Warrumbungle Shire. When, where and what is up.">
+<meta name="theme-color" content="#07090f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Calendar">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="theme-color" content="#07090f">
-<meta name="description" content="A free sky calendar for Coonabarabran and the Warrumbungle Shire. When, where and what is up.">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/jpeg" href="https://winter-scarlet-apple-drum.grok.me/images/dsh-coin.jpg">
-<link rel="apple-touch-icon" href="https://winter-scarlet-apple-drum.grok.me/images/dsh-coin.jpg">
 <style>
   html,body{margin:0;height:100%;background:#07090f;color:#f3efe4;font-family:Figtree,system-ui,sans-serif}
   .bar{position:fixed;top:0;left:0;right:0;z-index:2;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#07090fd9;backdrop-filter:blur(8px);font-size:13px}
-  .bar b{letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+  .bar b{letter-spacing:.12em;text-transform:uppercase;font-weight:700}
   .bar button{color:#e8a54b;margin-left:auto;background:none;border:0;font:inherit;cursor:pointer}
-  iframe{position:fixed;inset:44px 0 0 0;width:100%;height:calc(100% - 44px);border:0;background:#07090f}
+  iframe{position:fixed;inset:44px 0 92px 0;width:100%;height:calc(100% - 136px);border:0;background:#07090f}
+  .family{position:fixed;left:0;right:0;bottom:0;z-index:2;padding:10px 14px 14px;background:#07090f;border-top:1px solid rgba(232,160,74,.28);font-size:13px;line-height:1.45}
+  .family .hub{margin:0 0 4px;letter-spacing:.08em;text-transform:uppercase;font-size:11px;color:#c9c2b4}
+  .family .row{margin:0}
+  .family a{color:#e8a54b;text-decoration:none}
+  .family .here{color:#f3efe4}
+  .family .dot{color:#8b8376}
+  .family .site{margin:4px 0 0}
 </style>
 </head>
 <body>
@@ -26,15 +32,30 @@
     <b>Dark Sky Calendar</b>
     <span>Dark Sky Hub</span>
     <button type="button" id="fullBtn">Open full screen</button>
-    </div>
-  <iframe id="skyFrame" title="Coonabarabran Dark Sky Calendar" src="https://winter-scarlet-apple-drum.grok.me/?v=20260905b" allow="fullscreen"></iframe>
+  </div>
+  <iframe id="skyFrame" title="Dark Sky Calendar" src="https://winter-scarlet-apple-drum.grok.me/?v=20260925-family" allow="fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <footer class="family">
+    <p class="hub">Dark Sky Hub</p>
+    <p class="row"><a href="https://darkskyhub.github.io/solar-system-drive/">Solar System Drive</a> <span class="dot">·</span> <a href="https://darkskyhub.github.io/where-we-are/">Sky tonight</a> <span class="dot">·</span> <span class="here">Dark Sky Calendar</span> <span class="dot">·</span> <a href="https://darkskyhub.github.io/dark-sky-birds/">Dark Sky Birds</a></p>
+    <p class="site"><a href="https://darkskyhub.com.au/">darkskyhub.com.au</a></p>
+  </footer>
   <script>
-    document.getElementById('fullBtn').addEventListener('click', function () {
-      var frame = document.getElementById('skyFrame');
+    var live = "https://winter-scarlet-apple-drum.grok.me/?v=20260925-family";
+    var fallback = "./offline.html";
+    var frame = document.getElementById("skyFrame");
+    function useFallback() {
+      if (frame.getAttribute("data-fallback") === "1") return;
+      frame.setAttribute("data-fallback", "1");
+      frame.src = fallback;
+    }
+    if (!navigator.onLine) useFallback();
+    window.addEventListener("offline", useFallback);
+    frame.addEventListener("error", useFallback);
+    document.getElementById("fullBtn").addEventListener("click", function () {
       if (frame.requestFullscreen) frame.requestFullscreen();
-        else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
-          });
-    </script>
-  </body>
-  </html>
-    
+      else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+    });
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+  </script>
+</body>
+</html>
