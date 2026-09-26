@@ -21,12 +21,18 @@ const MONTHS = [
 
 const SEASONS = ["summer", "autumn", "winter", "spring"];
 
+function pagePaths(path) {
+  const bare = path.replace(/\/$/, "");
+  return [bare, `${bare}/`, `${bare}/index.html`];
+}
+
 const FILES = [
   "./",
+  "./index.html",
   "index.html",
   "404.html",
-  ...MONTHS.map((slug) => `month/${slug}`),
-  ...SEASONS.map((id) => `season/${id}`),
+  ...MONTHS.flatMap((slug) => pagePaths(`month/${slug}`)),
+  ...SEASONS.flatMap((id) => pagePaths(`season/${id}`)),
   "fonts/fonts.css",
   "fonts/figtree-latin.woff2",
   "fonts/figtree-latin-italic.woff2",
@@ -41,6 +47,7 @@ const FILES = [
   "images/nick-rourke-milky-way-arch.jpg",
   "images/dsh-coin.jpg",
   "offline.html",
+  "og.jpg",
 ];
 
 function underScope(url) {
@@ -87,6 +94,19 @@ function linkedUrls(text, from) {
   return found;
 }
 
+async function storeResponse(cache, key, response) {
+  const body = await response.clone().blob();
+  const clean = new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: new Headers(response.headers),
+  });
+  await cache.put(key, clean.clone());
+  if (response.redirected && response.url && response.url !== key) {
+    await cache.put(response.url, clean.clone());
+  }
+}
+
 async function storeAll(cache) {
   const seen = new Set();
   const queue = FILES.map((path) => new URL(path, self.registration.scope));
@@ -94,7 +114,6 @@ async function storeAll(cache) {
     const url = queue.shift();
     const key = url.href.split("#")[0];
     if (seen.has(key) || !underScope(url)) continue;
-    if (url.pathname.includes("/@vite/") || url.pathname.includes("/__vite")) continue;
     seen.add(key);
     try {
       const response = await fetch(url, { cache: "reload" });
@@ -102,7 +121,7 @@ async function storeAll(cache) {
         console.warn("[calendar] cache miss", response.status, key);
         continue;
       }
-      await cache.put(key, response.clone());
+      await storeResponse(cache, key, response);
       const type = response.headers.get("content-type") || "";
       const path = url.pathname;
       const readable =
@@ -111,12 +130,10 @@ async function storeAll(cache) {
         type.includes("javascript") ||
         path.endsWith(".css") ||
         path.endsWith(".js") ||
-        path.endsWith(".mjs") ||
-        path.endsWith(".tsx") ||
-        path.endsWith(".ts");
+        path.endsWith(".mjs");
       if (!readable) continue;
       const text = await response.text();
-      for (const next of linkedUrls(text, url)) queue.push(next);
+      for (const next of linkedUrls(text, new URL(response.url || url.href))) queue.push(next);
     } catch (error) {
       console.warn("[calendar] cache miss", key, error);
     }
@@ -141,6 +158,21 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+async function matchRequest(cache, request) {
+  const hit = await cache.match(request);
+  if (hit) return hit;
+  if (request.mode !== "navigate") return undefined;
+  const loose = await cache.match(request, { ignoreSearch: true });
+  if (loose) return loose;
+  const alt = new URL(request.url);
+  if (alt.pathname.endsWith("/")) alt.pathname = alt.pathname.replace(/\/+$/, "") || "/";
+  else alt.pathname += "/";
+  const altHit = await cache.match(alt.href);
+  if (altHit) return altHit;
+  const index = new URL("index.html", alt.pathname.endsWith("/") ? alt.href : `${alt.href}/`);
+  return cache.match(index.href);
+}
+
 async function shellOrOffline(cache) {
   const scope = self.registration.scope;
   return (
@@ -160,19 +192,38 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE);
-      const hit = await cache.match(request, { ignoreSearch: request.mode === "navigate" });
-      if (hit) return hit;
       try {
-        const response = await fetch(request);
-        if (response.ok) await cache.put(request, response.clone());
-        return response;
-      } catch (error) {
+        const hit = await matchRequest(cache, request);
+        const network = fetch(request)
+          .then(async (response) => {
+            if (response.ok) await storeResponse(cache, request.url, response);
+            return response;
+          })
+          .catch(() => null);
+        if (hit) {
+          event.waitUntil(network.then(() => undefined));
+          return hit;
+        }
+        const response = await network;
+        if (response) return response;
         if (request.mode === "navigate") {
           const fallback = await shellOrOffline(cache);
           if (fallback) return fallback;
         }
-        throw error;
+      } catch (error) {
+        console.warn("[calendar] cache miss", request.url, error);
+        if (request.mode === "navigate") {
+          const fallback = await shellOrOffline(cache);
+          if (fallback) return fallback;
+        }
       }
+      return new Response(
+        "No service just now. This calendar is on your phone. Try again when you next have signal.",
+        {
+          status: 503,
+          headers: { "content-type": "text/plain; charset=utf-8" },
+        },
+      );
     })(),
   );
 });
