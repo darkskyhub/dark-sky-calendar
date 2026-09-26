@@ -1,0 +1,1 @@
+var e=`This page is a sky clock. Pick your time to visit. We wish you clear skies. No guarantees with the weather.`;export{e as t};

@@ -1,7 +1,7 @@
 {
   "name": "Coonabarabran Dark Sky Calendar",
   "short_name": "Calendar",
-  "description": "When, where and what is up. A Dark Sky Hub sky clock for Coonabarabran and the Warrumbungle Shire.",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,16 +9,16 @@
   "theme_color": "#07090f",
   "icons": [
     {
-      "src": "https://winter-scarlet-apple-drum.grok.me/images/dsh-coin.jpg",
-      "sizes": "180x180",
-      "type": "image/jpeg",
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://winter-scarlet-apple-drum.grok.me/images/dsh-coin.jpg",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
