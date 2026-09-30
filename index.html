@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en-AU" class="antialiased">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Coonabarabran Dark Sky Calendar</title>
+    <meta name="description" content="A free sky calendar for Coonabarabran and the Warrumbungle Shire. A Dark Sky Hub guide." />
+    <meta name="theme-color" content="#07090f" />
+    <meta name="application-name" content="Calendar" />
+    <meta name="apple-mobile-web-app-title" content="Calendar" />
+    <link rel="stylesheet" href="/dark-sky-calendar/assets/styles-b4D0qafe.css" />
+    <link rel="stylesheet" href="/dark-sky-calendar/fonts/fonts.css" />
+    <link rel="icon" type="image/svg+xml" href="/dark-sky-calendar/favicon.svg" />
+    <link rel="apple-touch-icon" href="/dark-sky-calendar/apple-touch-icon.png" />
+    <link rel="manifest" href="/dark-sky-calendar/manifest.webmanifest" />
+    <script data-goatcounter="https://darkskyhub.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+    <script type="module" src="/dark-sky-calendar/assets/index-Ct429BEL.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/dark-sky-calendar/sw.js", {
+          scope: "/dark-sky-calendar/",
+        });
+      }
+    </script>
+  </body>
+</html>
