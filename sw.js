@@ -1,4 +1,4 @@
-const CACHE = "dark-sky-calendar-v20261012";
+const CACHE = "dark-sky-calendar-v20261012c";
 
 const MONTHS = [
   "2026-09",
